@@ -123,6 +123,17 @@ sub new{
 			return $self;
 		}
 
+		#initiliaze a the default set if needed.
+		if (!$returned) {
+			#init it
+			$self->init;
+			if ($self->{zconf}->{error}) {
+				$self->{perror}=1;
+				$self->{errorString}='Init failed.';
+				warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+				return $self;
+			}
+		}
 	}
 
 

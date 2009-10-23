@@ -1,5 +1,7 @@
 Revision history for ZConf-DevTemplate
 
-0.0.0	2009-10-13/14:00
-		-Initial release.
+0.0.1	2009-10-23/14:40
+		-Correct initilization in the template.
 
+0.0.0   2009-10-23/14:00
+		-Initial release.
