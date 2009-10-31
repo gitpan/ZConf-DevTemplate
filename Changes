@@ -1,5 +1,8 @@
 Revision history for ZConf-DevTemplate
 
+0.0.2	2009-10-31/15:20
+		-The GUI module created will now check to make sure a backend is updated.
+
 0.0.1	2009-10-23/14:40
 		-Correct initilization in the template.
 

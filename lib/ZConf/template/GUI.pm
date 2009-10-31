@@ -26,7 +26,7 @@ Perhaps a little code snippet.
 
     use ZConf::template::GUI;
 
-    my $foo = ZConf::template::GUI->new();
+    my $foogui = ZConf::template::GUI->new();
     ...
 
 =head1 METHODS
@@ -101,6 +101,15 @@ sub new{
 		return $self;
 	}
 
+	#make sure we have something
+	if (!defined($preferred[0])) {
+		$self->{error}=6;
+		$self->{perror}=1;
+		$self->{errorString}='Which did not return any preferred backends';
+		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		return $self;
+	}
+
 	#initiate the backend
 	my $toeval='use ZConf::template::GUI::'.$preferred[0].';'."\n".
 	           '$self->{be}=ZConf::template::GUI::'.$preferred[0].
@@ -150,6 +159,8 @@ sub app{
 		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
+
+	
 
 }
 
@@ -303,6 +314,10 @@ Failed to initiate the backend.
 =head2 5
 
 Backend errored.
+
+=head2 6
+
+No backend found via ZConf::GUI->which.
 
 =head1 AUTHOR
 
