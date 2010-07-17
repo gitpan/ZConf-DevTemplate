@@ -42,6 +42,11 @@ One arguement is taken and that is a hash.
 If this is defined, it will be used instead of creating
 a new ZConf object.
 
+    my $foo=ZConf::template->new;
+    if($foo->error){
+        warn('error '.$foo->error.': '.$foo->errorString);
+    }
+
 =cut
 
 sub new{
@@ -49,7 +54,7 @@ sub new{
 	if(defined($_[1])){
 		%args= %{$_[1]};
 	}
-	my $function='new';
+	my $method='new';
 
 	my $self={error=>undef,
 			  perror=>undef,
@@ -69,7 +74,7 @@ sub new{
 			$self->{errorString}="Could not initiate ZConf. It failed with '"
 			                      .$self->{zconf}->{error}."', '".
 			                      $self->{zconf}->{errorString}."'";
-			warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+			warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 			return $self;
 		}
 	}else {
@@ -84,7 +89,7 @@ sub new{
 		$self->{errorString}="Checking if '".$self."' exists failed. error='".
 		                     $self->{zconf}->{error}."', errorString='".
 		                     $self->{zconf}->{errorString}."'";
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -98,7 +103,7 @@ sub new{
 			$self->{errorString}="Checking if '".$self."' exists failed. error='".
 		                         $self->{zconf}->{error}."', errorString='".
 		                         $self->{zconf}->{errorString}."'";
-			warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+			warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 			return $self;
 		}
 
@@ -107,7 +112,7 @@ sub new{
 		if ($self->{zconf}->{error}) {
 			$self->{perror}=1;
 			$self->{errorString}='Init failed.';
-			warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+			warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 			return $self;
 		}
 	}else {
@@ -119,7 +124,7 @@ sub new{
 			$self->{errorString}="Checking if '".$self."' exists failed. error='".
 		                         $self->{zconf}->{error}."', errorString='".
 		                         $self->{zconf}->{errorString}."'";
-			warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+			warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 			return $self;
 		}
 
@@ -130,7 +135,7 @@ sub new{
 			if ($self->{zconf}->{error}) {
 				$self->{perror}=1;
 				$self->{errorString}='Init failed.';
-				warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+				warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 				return $self;
 			}
 		}
@@ -145,7 +150,7 @@ sub new{
 		$self->{errorString}="Checking if the default set for '".$self."' exists failed. error='".
 		                     $self->{zconf}->{error}."', errorString='".
 		                     $self->{zconf}->{errorString}."'";
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -158,7 +163,7 @@ This removes the specified ZConf set.
 
     $foo->delSet('someSet');
     if($foo->{error}){
-        print "Error!\n";
+        warn('error '.$foo->error.': '.$foo->errorString);
     }
 
 =cut
@@ -166,11 +171,11 @@ This removes the specified ZConf set.
 sub delSet{
 	my $self=$_[0];
 	my $set=$_[1];
-	my $function='init';
+	my $method='init';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -180,12 +185,38 @@ sub delSet{
 		$self->{errorString}='ZConf getAvailableSets failed. error="'.
 		                     $self->{zconf}->{error}.'", errorString="'.
 		                     $self->{zconf}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
 
 	return 1;
+}
+
+=head2 getZConf
+
+This returns the ZConf object.
+
+The only time this will error is if a permanent error is set.
+
+    my $zconf=$foo->getZConf;
+    if ($foo->error){
+        warn('error '.$foo->error.': '.$foo->errorString);
+    }
+
+=cut
+
+sub getZConf{
+	my $self=$_[0];
+	my $method='getZConf';
+
+	$self->errorblank;
+	if ($self->{error}) {
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		return undef;
+	}
+
+	return $self->{zconf};
 }
 
 =head2 init
@@ -198,7 +229,7 @@ The set is not automatically read.
 
     $foo->init($set);
     if($foo->{error}){
-        print "Error!\n";
+        warn('error '.$foo->error.': '.$foo->errorString);
     }
 
 =cut
@@ -206,11 +237,11 @@ The set is not automatically read.
 sub init{
 	my $self=$_[0];
 	my $set=$_[1];
-	my $function='init';
+	my $method='init';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -223,7 +254,7 @@ sub init{
 		$self->{errorString}='ZConf writeSetFromHash failed. error="'.
 		                     $self->{zconf}->{error}.'", errorString="'.
 		                     $self->{zconf}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -236,18 +267,18 @@ This lists the available sets for the ZConf config.
 
     my @sets=$foo->listSets;
     if($foo->{error}){
-        print "Error!\n";
+        warn('error '.$foo->error.': '.$foo->errorString);
     }
 
 =cut
 
 sub listSets{
 	my $self=$_[0];
-	my $function='listSets';
+	my $method='listSets';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -257,7 +288,7 @@ sub listSets{
 		$self->{errorString}='ZConf getAvailableSets failed. error="'.
 		                     $self->{zconf}->{error}.'", errorString="'.
 		                     $self->{zconf}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -272,7 +303,7 @@ If no set is specified, the default is used.
 
     $foo->readSet('someSet');
     if($foo->{error}){
-        print "Error!\n";
+        warn('error '.$foo->error.': '.$foo->errorString);
     }
 
 =cut
@@ -280,11 +311,11 @@ If no set is specified, the default is used.
 sub readSet{
 	my $self=$_[0];
 	my $set=$_[1];
-	my $function='readSet';
+	my $method='readSet';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -295,11 +326,40 @@ sub readSet{
 		$self->{errorString}='Failed to read the set. error="'.
 		                     $self->{zconf}->{error}.'", errorString="'.
 		                     $self->{zconf}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
 	return 1;
+}
+
+=head1 ERROR RELATED METHODS
+
+=head2 error
+
+This returns the current error code if one is set. If undef/evaulates as false
+then no error is present. Other wise one is.
+
+    if($foo->error){
+        warn('error '.$foo->error.': '.$foo->errorString);
+    }
+
+=cut
+
+sub error{
+	return $_[0]->{error};
+}
+
+=head2 errorString
+
+This returns the current error string. A return of "" means no error is present.
+
+    my $errorString=$foo->errorString;
+
+=cut
+
+sub errorString{
+	return $_[0]->{errorString};
 }
 
 =head2 errorblank
@@ -308,8 +368,8 @@ This blanks the error storage and is only meant for internal usage.
 
 It does the following.
 
-    $self->{error}=undef;
-    $self->{errorString}="";
+    $foo->{error}=undef;
+    $foo->{errorString}="";
 
 =cut
 

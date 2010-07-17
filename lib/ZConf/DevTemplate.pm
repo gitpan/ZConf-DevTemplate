@@ -12,12 +12,11 @@ ZConf::DevTemplate - Creates a the basic framework for a ZConf based module.
 
 =head1 VERSION
 
-Version 0.0.2
+Version 0.1.0
 
 =cut
 
-our $VERSION = '0.0.2';
-
+our $VERSION = '0.1.0';
 
 =head1 SYNOPSIS
 

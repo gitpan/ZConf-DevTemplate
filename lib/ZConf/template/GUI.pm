@@ -51,7 +51,7 @@ sub new{
 	if(defined($_[1])){
 		%args= %{$_[1]};
 	}
-	my $function='new';
+	my $method='new';
 
 	my $self={error=>undef,
 			  perror=>undef,
@@ -68,7 +68,7 @@ sub new{
 			$self->{perror}=1;
 			$self->{errorString}='Failed to initiate %%%PARENT%%%. error="'.
 			                     $self->{obj}->{error}.'" errorString="'.$self->{obj}->{errorString}.'"';
-			warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+			warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 			return $self;
 		}
 	}else {
@@ -85,7 +85,7 @@ sub new{
 		$self->{perror}=1;
 		$self->{errorString}='Failed to initiate ZConf::GUI. error="'.
     	                     $self->{gui}->{error}.'" errorString="'.$self->{gui}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -97,7 +97,7 @@ sub new{
 		$self->{perror}=1;
 		$self->{errorString}='Failed to get the preferred backend list. error="'.
     	                     $self->{gui}->{error}.'" errorString="'.$self->{gui}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -106,23 +106,44 @@ sub new{
 		$self->{error}=6;
 		$self->{perror}=1;
 		$self->{errorString}='Which did not return any preferred backends';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
-	#initiate the backend
-	my $toeval='use ZConf::template::GUI::'.$preferred[0].';'."\n".
-	           '$self->{be}=ZConf::template::GUI::'.$preferred[0].
-			   '->new({zconf=>$self->{zconf}, useX=>$self->{useX},'.
-			   'zcgui=>$self->{gui}, zcrunner=>$self->{zcr}}); return 1';
-	my $er=eval($toeval);
+	#try the backends till we get one
+	my $int=0;
+	my $loop=1;
+	while ($loop) {
 
+
+		if (defined($preferred[0])) {
+			#initiate the backend
+			my $toeval='use ZConf::template::GUI::'.$preferred[$int].';'."\n".
+		           '$self->{be}=ZConf::template::GUI::'.$preferred[$int].
+			       '->new({zconf=>$self->{zconf}, useX=>$self->{useX},'.
+			       'zcgui=>$self->{gui}, zcrunner=>$self->{zcr}}); return 1';
+			my $er=eval($toeval);
+		}else {
+			$loop=0;
+		}
+
+		#if it returned something, see if it errored
+		if (defined($self->{be})) {
+			if (!$self->{be}->{error}) {
+				#stop the loop and continue that we loaded a working one
+				$loop=0;
+			}
+		}
+		
+		$int++;
+	}
+		
 	#failed to initiate the backend
 	if (!defined($self->{be})) {
 		$self->{error}=4;
 		$self->{perror}=1;
 		$self->{errorString}='The backend returned undefined';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -131,8 +152,8 @@ sub new{
 		$self->{error}=4;
 		$self->{perror}=1;
 		$self->{errorString}='The backend returned undefined. error="'.
-    	                     $self->{be}->{error}.'" errorString="'.$self->{be}->{errorString}.'"';
-		warn($self->{module}.' '.$function.':'.$self->{error}.': '.$self->{errorString});
+		$self->{be}->{error}.'" errorString="'.$self->{be}->{errorString}.'"';
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
 		return $self;
 	}
 
@@ -145,22 +166,22 @@ Runs some application.
 
     $foogui->app;
     if($foogui->{error}){
-        print "Error!\n";
+        warn('error '.$foogui->error.': '.$foogui->errorString);
     }
 
 =cut
 
 sub app{
 	my $self=$_[0];
-	my $function='app';
+	my $method='app';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
-	
+	$self->{be}->app;
 
 }
 
@@ -170,7 +191,7 @@ If this returns true, it means it has a application.
 
     my $hasApp=$foogui->hasApp;
     if($foogui->{error}){
-        print "Error!\n";
+        warn('error '.$foogui->error.': '.$foogui->errorString);
     }else{
         if($hasApp){
             print "Yes\n";
@@ -181,11 +202,11 @@ If this returns true, it means it has a application.
 
 sub hasApp{
 	my $self=$_[0];
-	my $function='hasApp';
+	my $method='hasApp';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -194,12 +215,14 @@ sub hasApp{
 		$self->{error}=5;
 		$self->{errorString}='The backend errored. error="'.
     	                     $self->{be}->{error}.'" errorString="'.$self->{be}->{errorString}.'"';
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;		
 	}
 
 	return $hasApp;
 }
+
+=head1 DIALOG/WINDOW METHODS
 
 =head2 dialogs
 
@@ -207,18 +230,18 @@ This returns a array of available dialogs.
 
     my @dialogs=$foogui->dialogs;
     if($foogui->{error}){
-        print "Error!\n";
+        warn('error '.$foogui->error.': '.$foogui->errorString);
     }
 
 =cut
 
 sub dialogs{
 	my $self=$_[0];
-	my $function='dialogs';
+	my $method='dialogs';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -227,11 +250,113 @@ sub dialogs{
 		$self->{error}=5;
 		$self->{errorString}='The backend errored. error="'.
     	                     $self->{be}->{error}.'" errorString="'.$self->{be}->{errorString}.'"';
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
-		return undef;		
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		return undef;
 	}
 
 	return @dialogs;
+}
+
+=head2 hasDialog
+
+This checks if the loaded backend supports a specific dialog.
+
+    my $supported=$foogui->hasDialog($dialogName);
+    if($foogui->error){
+        warn('error '.$foogui->error.': '.$foogui->errorString);
+    }
+    if(!supported){
+        warn($dialogName.' is not supported');
+    }
+
+=cut
+
+sub hasDialog{
+	my $self=$_[0];
+	my $dialog=$_[1];
+	my $method='hasDialog';
+
+	$self->errorblank;
+	if ($self->{error}) {
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		return undef;
+	}
+
+	if (!defined($dialog)) {
+		$self->{error}=7;
+		$self->{errorString}='No dialog specified';
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
+	}
+
+	#try to fetch the supported dialogs
+	my @dialogs=$self->dialogs;
+	if ($self->error) {
+		warn($self->{module}.' '.$method.': $self->dialogs errored');
+		return undef;
+	}
+
+	#look for a match
+	my $int=0;
+	while (defined($dialogs[$int])) {
+		#return true if a match is found
+		if ($dialogs[$int] eq $dialog) {
+			return 1;
+		}
+		$int++;
+	}
+
+	return 0;
+}
+
+=head2 hasWindow
+
+This checks if the loaded backend supports a specific window.
+
+    my $supported=$foogui->hasWindow($windowName);
+    if($foogui->error){
+        warn('error '.$foogui->error.': '.$foogui->errorString);
+    }
+    if(!supported){
+        warn($windowName.' is not supported');
+    }
+
+=cut
+
+sub hasWindow{
+	my $self=$_[0];
+	my $dialog=$_[1];
+	my $method='hasDialog';
+
+	$self->errorblank;
+	if ($self->{error}) {
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		return undef;
+	}
+
+	if (!defined($dialog)) {
+		$self->{error}=7;
+		$self->{errorString}='No dialog specified';
+		warn($self->{module}.' '.$method.':'.$self->{error}.': '.$self->{errorString});
+	}
+
+	#try to fetch the supported dialogs
+	my @dialogs=$self->dialogs;
+	if ($self->error) {
+		warn($self->{module}.' '.$method.': $self->dialogs errored');
+		return undef;
+	}
+
+	#look for a match
+	my $int=0;
+	while (defined($dialogs[$int])) {
+		#return true if a match is found
+		if ($dialogs[$int] eq $dialog) {
+			return 1;
+		}
+		$int++;
+	}
+
+	return 0;
 }
 
 =head2 windows
@@ -240,18 +365,18 @@ This returns a array of available dialogs.
 
     my @windows=$foogui->windows;
     if($foogui->{error}){
-        print "Error!\n";
+        warn('error '.$foogui->error.': '.$foogui->errorString);
     }
 
 =cut
 
 sub windows{
 	my $self=$_[0];
-	my $function='windows';
+	my $method='windows';
 
 	$self->errorblank;
 	if ($self->{error}) {
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;
 	}
 
@@ -260,11 +385,40 @@ sub windows{
 		$self->{error}=5;
 		$self->{errorString}='The backend errored. error="'.
     	                     $self->{be}->{error}.'" errorString="'.$self->{be}->{errorString}.'"';
-		warn($self->{module}.' '.$function.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
+		warn($self->{module}.' '.$method.': A permanent error is set. error="'.$self->{error}.'" errorString="'.$self->{errorString}.'"');
 		return undef;		
 	}
 
 	return @windows;
+}
+
+=head1 ERROR RELATED METHODS
+
+=head2 error
+
+This returns the current error code if one is set. If undef/evaulates as false
+then no error is present. Other wise one is.
+
+    if($foogui->error){
+        warn('error '.$foogui->error.': '.$foogui->errorString);
+    }
+
+=cut
+
+sub error{
+	return $_[0]->{error};
+}
+
+=head2 errorString
+
+This returns the current error string. A return of "" means no error is present.
+
+    my $errorString=$foogui->errorString;
+
+=cut
+
+sub errorString{
+	return $_[0]->{errorString};
 }
 
 =head2 errorblank
@@ -273,8 +427,8 @@ This blanks the error storage and is only meant for internal usage.
 
 It does the following.
 
-    $self->{error}=undef;
-    $self->{errorString}="";
+    $foogui->{error}=undef;
+    $foogui->{errorString}="";
 
 =cut
 
@@ -318,6 +472,10 @@ Backend errored.
 =head2 6
 
 No backend found via ZConf::GUI->which.
+
+=head2 7
+
+No dialog specified.
 
 =head1 AUTHOR
 
