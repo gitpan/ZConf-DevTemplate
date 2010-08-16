@@ -17,6 +17,7 @@ WriteMakefile(
 							'Module::Starter'=>0,
 							'ZConf'=>0,
 							'ZConf::GUI'=>0,
+							'String::ShellQuote'=>0,
 							},
 			  dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 			  clean               => { FILES => 'ZConf-DevTemplate-*' },
